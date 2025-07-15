@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Credential Parser</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roblox Credential Checker</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app"></div>
+  <div class="app-container">
+    <main>
+      <h1>Roblox Credential Checker</h1>
+
+      <input type="text" id="username" placeholder="Roblox Username" />
+      <input type="text" id="password" placeholder="Roblox Password" />
+      <button onclick="checkRobloxCredentials()">Check Credentials</button>
+
+      <div id="previewArea" class="hidden">
+        <h2>Result:</h2>
+        <div id="results"></div>
+      </div>
+
+      <div class="debug-log" id="debugLog"></div>
+    </main>
+  </div>
+
   <script src="script.js"></script>
-  <div class="tab-bar">
-  <button onclick="switchTab('accounts')">Accounts</button>
-  <button onclick="switchTab('proxies')">Proxies</button>
-  <button onclick="switchTab('debug')">Debug Mode</button>
-  <button onclick="logout()">Logout</button>
-</div>
-
-<div id="tabContent"></div>
-
 </body>
 </html>
