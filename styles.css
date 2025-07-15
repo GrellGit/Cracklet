@@ -19,77 +19,41 @@ body, html {
   overflow: hidden;
 }
 
-/* Sidebar */
-nav {
-  width: 220px;
-  background-color: #1e1e1e;
+.tab-bar {
   display: flex;
-  flex-direction: column;
-  padding: 2rem 1.5rem;
-  border-right: 1px solid #333;
+  justify-content: space-around;
+  background: #111;
+  border-bottom: 1px solid #333;
+  padding: 0.5rem 0;
 }
 
-nav h2 {
-  color: #7fff7f;
-  text-align: center;
-  margin-bottom: 2rem;
-  font-weight: 700;
-  font-size: 1.4rem;
-  user-select: text;
-}
-
-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2rem 0;
-  flex-grow: 1;
-}
-
-nav ul li {
-  margin-bottom: 12px;
-}
-
-.tab-btn {
-  width: 100%;
-  padding: 12px 0;
-  background-color: #2c2c2c;
+.tab-bar button {
+  background: transparent;
+  color: #a259ff;
+  font-family: 'Fira Code', monospace;
   border: none;
-  border-radius: 6px;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-bar button:hover,
+.tab-bar button:focus {
+  border-bottom: 2px solid #00ff00;
+  color: #00ff00;
+}
+
+.debug-log {
+  background: #111;
+  border: 1px solid #444;
+  padding: 10px;
+  font-family: monospace;
   color: #ccc;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  user-select: none;
-  text-align: center;
-}
-
-.tab-btn:hover {
-  background-color: #3a7f3a;
-  color: #d4ffd4;
-}
-
-.tab-btn.active {
-  background-color: #4caf50;
-  color: #e9ffe9;
-  box-shadow: 0 0 10px #4caf50aa;
-}
-
-nav button[onclick="logout()"] {
-  margin-top: auto;
-  background-color: #607d8b;
-  font-weight: 700;
-  color: #fff;
-  border-radius: 6px;
-  border: none;
-  padding: 12px 0;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-}
-
-nav button[onclick="logout()"]:hover {
-  background-color: #455a64;
+  height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-top: 1rem;
 }
 
 /* Main content area */
