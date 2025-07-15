@@ -26,19 +26,47 @@ function renderMainScreen() {
   app.innerHTML = `
     <div class="main-screen">
       <h1>Hello, <span class="green">${userName}</span></h1>
-
+      <div id="profilePicContainer">
+        <img id="profilePic" src="" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%;">
+      </div>
       <textarea id="credInput" rows="8" cols="50" placeholder="Paste your credentials here..."></textarea><br>
       <input type="file" id="fileInput"><br>
       <button onclick="previewData()">Preview & Assign Format</button>
-
       <div id="previewArea"></div>
       <div id="siteSelect" class="hidden">
-        <h2>Site: <img src="https://tr.rbxcdn.com/f0a3511efdfc2a52bcff21a7f48f6458/150/150/Image/Png" style="width:20px;vertical-align:middle;"> Roblox</h2>
+        <h2>Site: <img src="https://www.vhv.rs/dpng/d/12-124716_johns-hopkins-logo-white-hd-png-download.png" style="width:20px;vertical-align:middle;"> Roblox</h2>
         <button onclick="validateCredentials()">Validate Credentials</button>
       </div>
       <div id="results"></div>
     </div>
   `;
+  fetchProfilePicture(userName);
+}
+
+async function fetchProfilePicture(username) {
+  try {
+    const userId = await getUserIdFromUsername(username);
+    const imageUrl = await getProfilePictureUrl(userId);
+    document.getElementById('profilePic').src = imageUrl;
+  } catch (error) {
+    console.error('Error fetching profile picture:', error);
+  }
+}
+
+async function getUserIdFromUsername(username) {
+  const response = await fetch('https://users.roblox.com/v1/usernames/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usernames: [username] })
+  });
+  const data = await response.json();
+  return data.data[0]?.id;
+}
+
+async function getProfilePictureUrl(userId) {
+  const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
+  const data = await response.json();
+  return data.data[0]?.imageUrl;
 }
 
 function previewData() {
@@ -70,7 +98,6 @@ function processPreview(data) {
 
   const firstTokens = firstFew[0].split(delimiter);
 
-  // Build dropdowns for each token
   previewHTML += `<div class="preview-line">`;
   firstTokens.forEach((token, idx) => {
     previewHTML += `
@@ -87,7 +114,6 @@ function processPreview(data) {
   });
   previewHTML += `</div>`;
 
-  // Show the 3 sample lines
   previewHTML += `<pre style="margin-top:1rem; text-align:left;">${firstFew.join('\n')}</pre>`;
 
   document.getElementById('previewArea').innerHTML = previewHTML;
@@ -95,7 +121,6 @@ function processPreview(data) {
 }
 
 function setFormat(index, role) {
-  // Remove duplicate assignments
   for (let key in format) {
     if (format[key] === index) format[key] = -1;
   }
@@ -103,29 +128,6 @@ function setFormat(index, role) {
   if (role) {
     format[role] = index;
   }
-}
-
-
-function assignToken(index, el) {
-  if (confirm("Assign as Username?")) {
-    format.username = index;
-    updateTokenStyles(el, 'username');
-  } else if (confirm("Assign as Password?")) {
-    format.password = index;
-    updateTokenStyles(el, 'password');
-  } else if (confirm("Assign as Site?")) {
-    format.site = index;
-    updateTokenStyles(el, 'site');
-  }
-}
-
-function updateTokenStyles(el, type) {
-  document.querySelectorAll('.token').forEach(t => t.classList.remove(`selected-${type}`));
-  el.classList.add(`selected-${type}`);
-}
-
-function simulateRobloxValidation(username, password) {
-  return Math.random() > 0.5;
 }
 
 function validateCredentials() {
@@ -181,6 +183,10 @@ function resultCard(user, colorClass) {
       </div>
     </div>
   `;
+}
+
+function simulateRobloxValidation(username, password) {
+  return Math.random() > 0.5;
 }
 
 // Init
