@@ -4,6 +4,65 @@ let format = { site: -1, username: -1, password: -1 };
 let parsedLines = [];
 let valid = [], invalid = [], actionRequired = [];
 let checkingCount = 0;
+let currentTab = 'accounts';
+let debugMode = false;
+let savedProxies = [];
+
+function switchTab(tab) {
+  currentTab = tab;
+  renderTab();
+}
+
+function renderTab() {
+  const tabContent = document.getElementById('tabContent');
+  switch (currentTab) {
+    case 'accounts':
+      renderMainScreen(); // your existing main interface
+      break;
+    case 'proxies':
+      tabContent.innerHTML = `
+        <h2>Proxy Settings</h2>
+        <textarea id="proxyInput" placeholder="Paste one proxy per line..."></textarea>
+        <button onclick="saveProxies()">Save Proxies</button>
+        <h3>Saved Proxies:</h3>
+        <pre>${savedProxies.join('\n') || 'None'}</pre>
+      `;
+      break;
+    case 'debug':
+      tabContent.innerHTML = `
+        <h2>Debug Mode</h2>
+        <label><input type="checkbox" onchange="toggleDebug(this)"> Enable Debug Output</label>
+        <div id="debugOutput" class="debug-log">${debugLog.join('\n')}</div>
+      `;
+      break;
+  }
+}
+
+function toggleDebug(checkbox) {
+  debugMode = checkbox.checked;
+}
+
+function saveProxies() {
+  const input = document.getElementById('proxyInput').value.trim();
+  savedProxies = input.split('\n').filter(line => line.trim());
+  alert('Proxies saved!');
+  renderTab(); // Refresh proxy list
+}
+
+function logout() {
+  localStorage.removeItem('username');
+  location.reload();
+}
+
+let debugLog = [];
+
+function logDebug(message) {
+  if (debugMode) {
+    debugLog.push(message);
+    const el = document.getElementById('debugOutput');
+    if (el) el.textContent = debugLog.join('\n');
+  }
+}
 
 function renderNameScreen() {
   app.innerHTML = `
