@@ -1,0 +1,101 @@
+body {
+  background-color: #000;
+  font-family: 'Fira Code', monospace;
+  color: #a259ff;
+  margin: 0;
+  padding: 0;
+}
+
+input, textarea, button {
+  font-family: inherit;
+  font-size: 16px;
+  background: #111;
+  border: 1px solid #444;
+  color: #a259ff;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+button {
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #222;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.name-screen, .main-screen {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.green { color: #00ff00; }
+.red { color: #ff0044; }
+.gray { color: #ccc; }
+
+.preview-line {
+  margin: 10px 0;
+}
+
+.token {
+  display: inline-block;
+  background: #111;
+  border: 1px solid #555;
+  margin: 2px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.token.selected-username { color: #00ff00; border-color: #00ff00; }
+.token.selected-password { color: #a259ff; border-color: #a259ff; }
+.token.selected-site     { color: #ccc; border-color: #ccc; }
+
+.result-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #111;
+  border: 1px solid #222;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.result-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.password {
+  filter: blur(5px);
+  cursor: pointer;
+}
+
+.password.visible {
+  filter: none;
+}
+
+.profile-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+h2 {
+  margin-top: 2rem;
+}
