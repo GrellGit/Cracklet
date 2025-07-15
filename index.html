@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roblox Credential Checker</title>
-  <link rel="stylesheet" href="style.css" /> <!-- Make sure this path is correct -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="tab-bar">
@@ -16,9 +15,16 @@
   </div>
 
   <div id="tabContent">
-    <!-- This content will be populated dynamically by script.js -->
+    <p>Tab content will load here.</p>
   </div>
 
-  <script src="script.js"></script> <!-- Make sure this path is correct -->
+  <script>
+    function switchTab(tab) {
+      document.getElementById('tabContent').textContent = 'Switched to ' + tab;
+    }
+    function logout() {
+      alert('Logout clicked');
+    }
+  </script>
 </body>
 </html>
