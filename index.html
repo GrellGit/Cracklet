@@ -2,21 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roblox Credential Checker</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Joinex Members Delivery</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="tab-bar">
-    <button onclick="switchTab('accounts')">Accounts</button>
-    <button onclick="switchTab('proxies')">Proxies</button>
-    <button onclick="switchTab('debug')">Debug Mode</button>
-    <button onclick="logout()">Logout</button>
+  <div id="step1">
+    <h2>✅ Thanks for your purchase</h2>
+    <p>Add the bot to your server to begin delivery.</p>
+    <a href="https://discord.com/oauth2/authorize?client_id=535936517051252757&permissions=1&scope=bot" target="_blank">
+      <button>Add Bot</button>
+    </a>
+    <button onclick="goToStep2()">Next</button>
   </div>
 
-  <div id="tabContent">
-    Tab content will load here.
+  <div id="step2" style="display:none;">
+    <h2>⚠️ Final Confirmation</h2>
+    <p>Make sure the bot is in your server. Click below to begin delivery.</p>
+    <button onclick="showPopup()">Continue</button>
+    <button onclick="goToStep1()">Go Back</button>
+  </div>
+
+  <div id="popup">
+    <div class="popup-box">
+      <h3>Start Member Delivery?</h3>
+      <p>No refunds if the bot isn't in the server.</p>
+      <button onclick="startDelivery()">Confirm & Send</button>
+      <button onclick="hidePopup()">Cancel</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
