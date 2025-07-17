@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Start Delivery</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <title>Joinex Members</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <div class="container">
-    <h1>Start Your Delivery</h1>
-    <form id="deliveryForm">
-      <label for="licenseKey">License Key</label>
-      <input type="text" id="licenseKey" placeholder="Paste your license key..." required />
+    <h1>Activate Your License</h1>
 
-      <label for="discordLink">Discord Invite Link</label>
-      <input type="text" id="discordLink" placeholder="e.g., https://discord.gg/abc123" required />
-
-      <button type="submit">Start Members</button>
-    </form>
-
-    <div id="message" class="hidden"></div>
+    <input id="licenseInput" type="text" placeholder="License Key" />
+    <input id="discordLinkInput" type="text" placeholder="Discord Invite Link" />
+    <button id="submitBtn">Submit</button>
   </div>
 
+  <!-- Load JS after HTML so button exists -->
   <script src="script.js"></script>
 </body>
 </html>
