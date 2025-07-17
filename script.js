@@ -1,9 +1,8 @@
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const licenseKey = document.getElementById('licenseInput').value.trim();
   const discordLink = document.getElementById('discordLinkInput').value.trim();
-  const instanceName = document.getElementById('instanceInput').value.trim();
 
-  if (!licenseKey || !discordLink || !instanceName) {
+  if (!licenseKey || !discordLink) {
     alert('Please fill in all fields.');
     return;
   }
@@ -16,8 +15,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       },
       body: JSON.stringify({
         licenseKey,
-        discordLink,
-        instanceName
+        discordLink
       })
     });
 
