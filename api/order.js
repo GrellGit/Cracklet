@@ -1,4 +1,4 @@
-// /api/order.js (DEV MODE ENABLED)
+// /api/order.js
 
 const DEV_MODE = true;
 
@@ -7,48 +7,42 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { licenseKey, discordLink } = req.body;
+  const { licenseKey, discordLink, instanceName } = req.body;
 
-  if (!licenseKey || !discordLink) {
-    return res.status(400).json({ error: 'License key and Discord link are required' });
+  if (!licenseKey || !discordLink || !instanceName) {
+    return res.status(400).json({ error: 'License key, Discord link, and instance name are required' });
   }
 
   try {
-    // Validate license key with Sell.app
-    const validateRes = await fetch(`https://sell.app/api/v1/licenses/${licenseKey}`, {
+    // Step 1: Activate the license key via Sell.app
+    const activateRes = await fetch('https://sell.app/api/v1/licenses/activate', {
+      method: 'POST',
       headers: {
         Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        license_key: licenseKey,
+        instance_name: instanceName
+      })
     });
 
+    const activationData = await activateRes.json();
 
-    const license = await validateRes.json();
-    const isValid = license?.data?.valid;
-
-    if (!isValid) {
-      return res.status(400).json({ error: 'Invalid license key' });
+    // Handle activation failure
+    if (!activateRes.ok) {
+      const message = activationData?.message || 'License activation failed.';
+      return res.status(400).json({ error: message });
     }
 
-    const productId = license.data.product_id || 'TEST_ONLINE';
-    const quantity = license.data.metadata?.quantity || 100;
+    const productId = activationData?.license_key?.product_id || 'TEST_ONLINE';
+    const quantity = activationData?.license_key?.metadata?.quantity || 100;
 
     console.log('Product ID:', productId);
-    console.log('License Check Response:', license);
+    console.log('License Activation Response:', activationData);
 
-    // Skip license deletion in dev mode
-    if (!DEV_MODE) {
-      await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
-          Accept: 'application/json'
-        }
-      });
-    }
-
-    // Determine service ID
-    let serviceId = null;
+    // Step 2: Choose correct service ID
+    let serviceId;
     if (productId === 'online_members_product_id' || productId === 'TEST_ONLINE') {
       serviceId = 6002;
     } else if (productId === 'offline_members_product_id' || productId === 'TEST_OFFLINE') {
@@ -57,16 +51,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unknown product ID', productId });
     }
 
-    // DEV MODE: Fake response
+    // Step 3: DEV MODE short-circuit
     if (DEV_MODE) {
       return res.status(200).json({
         success: true,
         dev: true,
-        order: 'FAKE-ORDER-ID-123'
+        order: 'FAKE_ORDER_12345'
       });
     }
 
-    // Live SMM API call
+    // Step 4: Place actual order with SMM panel
     const smmRes = await fetch('https://morethanpanel.com/api/v2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,7 +76,7 @@ export default async function handler(req, res) {
     const smmResult = await smmRes.json();
 
     if (!smmResult?.order) {
-      return res.status(500).json({ error: 'SMM panel error', details: smmResult });
+      return res.status(500).json({ error: 'SMM panel failed', details: smmResult });
     }
 
     return res.status(200).json({ success: true, order: smmResult.order });
