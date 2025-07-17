@@ -1,4 +1,6 @@
-// /api/order.js
+// /api/order.js (DEV MODE ENABLED)
+
+const DEV_MODE = true;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Step 1: Validate license key with Sell.app
+    // Validate license key with Sell.app
     const validateRes = await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
       headers: {
         Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
@@ -21,27 +23,31 @@ export default async function handler(req, res) {
     });
 
     const license = await validateRes.json();
+    const isValid = license?.data?.valid;
 
-    if (!license?.data?.valid) {
+    if (!isValid) {
       return res.status(400).json({ error: 'Invalid license key' });
     }
 
-    const productId = license.data.product_id;
+    const productId = license.data.product_id || 'TEST_ONLINE';
     const quantity = license.data.metadata?.quantity || 100;
 
-    // Step 2: Delete license
-    await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
-        Accept: 'application/json'
-      }
-    });
+    console.log('Product ID:', productId);
+    console.log('License Check Response:', license);
 
-    // Step 3: Choose service based on product
+    // Skip license deletion in dev mode
+    if (!DEV_MODE) {
+      await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
+          Accept: 'application/json'
+        }
+      });
+    }
+
+    // Determine service ID
     let serviceId = null;
-
-// TEMP: Allow test mode for unknown product IDs
     if (productId === 'online_members_product_id' || productId === 'TEST_ONLINE') {
       serviceId = 6002;
     } else if (productId === 'offline_members_product_id' || productId === 'TEST_OFFLINE') {
@@ -50,8 +56,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unknown product ID', productId });
     }
 
+    // DEV MODE: Fake response
+    if (DEV_MODE) {
+      return res.status(200).json({
+        success: true,
+        dev: true,
+        order: 'FAKE-ORDER-ID-123'
+      });
+    }
 
-    // Step 4: Place order on SMM panel
+    // Live SMM API call
     const smmRes = await fetch('https://morethanpanel.com/api/v2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -73,7 +87,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, order: smmResult.order });
 
   } catch (err) {
-    console.error(err);
+    console.error('Error in /api/order:', err);
     return res.status(500).json({ error: 'Server error', message: err.message });
   }
 }
