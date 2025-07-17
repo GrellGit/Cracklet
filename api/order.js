@@ -5,10 +5,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { licenseKey } = req.body;
+  const { licenseKey, discordLink } = req.body;
 
-  if (!licenseKey) {
-    return res.status(400).json({ error: 'License key missing' });
+  if (!licenseKey || !discordLink) {
+    return res.status(400).json({ error: 'License key and Discord link are required' });
   }
 
   try {
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         key: 'a40f9983250c8666d304e0c0a90c6467',
         action: 'add',
         service: serviceId,
-        link: 'https://discord.gg/YOUR_SERVER_LINK', // customize later
+        link: discordLink,
         quantity
       })
     });
