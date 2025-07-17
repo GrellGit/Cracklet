@@ -1,5 +1,3 @@
-// /api/order.js
-
 const DEV_MODE = true;
 
 export default async function handler(req, res) {
@@ -7,14 +5,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { licenseKey, discordLink, instanceName } = req.body;
+  const { licenseKey, discordLink } = req.body;
 
-  if (!licenseKey || !discordLink || !instanceName) {
-    return res.status(400).json({ error: 'License key, Discord link, and instance name are required' });
+  if (!licenseKey || !discordLink) {
+    return res.status(400).json({ error: 'License key and Discord link are required' });
   }
 
   try {
-    // Step 1: Activate the license key via Sell.app
+    // Step 1: Activate license (instance_name removed, just use licenseKey itself)
     const activateRes = await fetch('https://sell.app/api/v1/licenses/activate', {
       method: 'POST',
       headers: {
@@ -23,13 +21,12 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         license_key: licenseKey,
-        instance_name: instanceName
+        instance_name: licenseKey // just reuse it as placeholder
       })
     });
 
     const activationData = await activateRes.json();
 
-    // Handle activation failure
     if (!activateRes.ok) {
       const message = activationData?.message || 'License activation failed.';
       return res.status(400).json({ error: message });
@@ -38,10 +35,6 @@ export default async function handler(req, res) {
     const productId = activationData?.license_key?.product_id || 'TEST_ONLINE';
     const quantity = activationData?.license_key?.metadata?.quantity || 100;
 
-    console.log('Product ID:', productId);
-    console.log('License Activation Response:', activationData);
-
-    // Step 2: Choose correct service ID
     let serviceId;
     if (productId === 'online_members_product_id' || productId === 'TEST_ONLINE') {
       serviceId = 6002;
@@ -51,7 +44,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unknown product ID', productId });
     }
 
-    // Step 3: DEV MODE short-circuit
     if (DEV_MODE) {
       return res.status(200).json({
         success: true,
@@ -60,7 +52,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Step 4: Place actual order with SMM panel
+    // Real order (live mode)
     const smmRes = await fetch('https://morethanpanel.com/api/v2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
