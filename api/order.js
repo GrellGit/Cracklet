@@ -1,32 +1,76 @@
+// /api/order.js
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { link, quantity, service } = req.body;
+  const { licenseKey } = req.body;
+
+  if (!licenseKey) {
+    return res.status(400).json({ error: 'License key missing' });
+  }
 
   try {
-    const panelRes = await fetch('https://morethanpanel.com/api/v2', {
+    // Step 1: Validate license key with Sell.app
+    const validateRes = await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
+      headers: {
+        Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
+        Accept: 'application/json'
+      }
+    });
+
+    const license = await validateRes.json();
+
+    if (!license?.data?.valid) {
+      return res.status(400).json({ error: 'Invalid license key' });
+    }
+
+    const productId = license.data.product_id;
+    const quantity = license.data.metadata?.quantity || 100;
+
+    // Step 2: Delete license
+    await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
+        Accept: 'application/json'
+      }
+    });
+
+    // Step 3: Choose service based on product
+    let serviceId = null;
+    if (productId === 'online_members_product_id') {
+      serviceId = 6002;
+    } else if (productId === 'offline_members_product_id') {
+      serviceId = 7344;
+    } else {
+      return res.status(400).json({ error: 'Unknown product ID' });
+    }
+
+    // Step 4: Place order on SMM panel
+    const smmRes = await fetch('https://morethanpanel.com/api/v2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        key: process.env.PANEL_API_KEY, // Use Vercel env vars
+        key: 'a40f9983250c8666d304e0c0a90c6467',
         action: 'add',
-        service,
-        link,
+        service: serviceId,
+        link: 'https://discord.gg/YOUR_SERVER_LINK', // customize later
         quantity
       })
     });
 
-    const result = await panelRes.json();
+    const smmResult = await smmRes.json();
 
-    if (result.order) {
-      res.status(200).json({ order: result.order });
-    } else {
-      res.status(500).json({ error: 'Order failed', details: result });
+    if (!smmResult?.order) {
+      return res.status(500).json({ error: 'SMM panel error', details: smmResult });
     }
 
-  } catch (error) {
-    res.status(500).json({ error: 'Server error', message: error.message });
+    return res.status(200).json({ success: true, order: smmResult.order });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Server error', message: err.message });
   }
 }
