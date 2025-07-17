@@ -15,12 +15,13 @@ export default async function handler(req, res) {
 
   try {
     // Validate license key with Sell.app
-    const validateRes = await fetch(`https://developer.sell.app/api/licenses/${licenseKey}`, {
+    const validateRes = await fetch(`https://sell.app/api/v1/licenses/${licenseKey}`, {
       headers: {
         Authorization: 'Bearer e1I3gxOHIdjObMWTjBED5KvCmQfVfOEutHjGqTkjed8bea5f',
-        Accept: 'application/json'
+        'Content-Type': 'application/json'
       }
     });
+
 
     const license = await validateRes.json();
     const isValid = license?.data?.valid;
