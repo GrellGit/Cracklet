@@ -40,13 +40,16 @@ export default async function handler(req, res) {
 
     // Step 3: Choose service based on product
     let serviceId = null;
-    if (productId === 'online_members_product_id') {
+
+// TEMP: Allow test mode for unknown product IDs
+    if (productId === 'online_members_product_id' || productId === 'TEST_ONLINE') {
       serviceId = 6002;
-    } else if (productId === 'offline_members_product_id') {
+    } else if (productId === 'offline_members_product_id' || productId === 'TEST_OFFLINE') {
       serviceId = 7344;
     } else {
-      return res.status(400).json({ error: 'Unknown product ID' });
+      return res.status(400).json({ error: 'Unknown product ID', productId });
     }
+
 
     // Step 4: Place order on SMM panel
     const smmRes = await fetch('https://morethanpanel.com/api/v2', {
