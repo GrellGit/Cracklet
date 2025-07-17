@@ -21,9 +21,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         license_key: licenseKey,
-        instance_name: licenseKey // just reuse it as placeholder
       })
-    });
+    })  
+  .then(response => console.log(response))
+  .catch(err => console.error(err));
 
     const activationData = await activateRes.json();
 
