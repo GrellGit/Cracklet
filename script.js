@@ -1,37 +1,37 @@
-const form = document.getElementById('deliveryForm');
-const message = document.getElementById('message');
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const licenseKey = document.getElementById('licenseInput').value.trim();
+  const discordLink = document.getElementById('discordLinkInput').value.trim();
+  const instanceName = document.getElementById('instanceInput').value.trim();
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const licenseKey = document.getElementById('licenseKey').value.trim();
-  const discordLink = document.getElementById('discordLink').value.trim();
-
-  if (!licenseKey || !discordLink) {
-    showMessage("Please fill in both fields.");
+  if (!licenseKey || !discordLink || !instanceName) {
+    alert('Please fill in all fields.');
     return;
   }
 
   try {
-    const res = await fetch('/api/order', {
+    const response = await fetch('/api/order', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ licenseKey, discordLink })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        licenseKey,
+        discordLink,
+        instanceName
+      })
     });
 
-    const data = await res.json();
+    const data = await response.json();
 
     if (data.success) {
-      showMessage(`✅ Order started successfully. Order ID: ${data.order}`);
+      alert(`Order placed successfully! Order ID: ${data.order}`);
+      window.location.href = 'https://discord.gg/nfjeEsPgyx';
     } else {
-      showMessage(`❌ Error: ${data.error || 'Something went wrong'}`);
+      alert(`Error: ${data.error || 'Unknown error'}`);
     }
+
   } catch (err) {
-    showMessage(`❌ Request failed: ${err.message}`);
+    console.error(err);
+    alert('Something went wrong.');
   }
 });
-
-function showMessage(msg) {
-  message.textContent = msg;
-  message.classList.remove('hidden');
-}
