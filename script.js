@@ -1,27 +1,37 @@
-function goToStep2() {
-  console.log("Moved to Step 2: Confirmation");
-  document.getElementById('step1').style.display = 'none';
-  document.getElementById('step2').style.display = 'block';
-}
+const form = document.getElementById('deliveryForm');
+const message = document.getElementById('message');
 
-function goToStep1() {
-  console.log("Returned to Step 1: Add Bot");
-  document.getElementById('step2').style.display = 'none';
-  document.getElementById('step1').style.display = 'block';
-}
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-function showPopup() {
-  console.log("Popup opened: User is about to confirm delivery.");
-  document.getElementById('popup').style.display = 'flex';
-}
+  const licenseKey = document.getElementById('licenseKey').value.trim();
+  const discordLink = document.getElementById('discordLink').value.trim();
 
-function hidePopup() {
-  console.log("Popup closed: User cancelled confirmation.");
-  document.getElementById('popup').style.display = 'none';
-}
+  if (!licenseKey || !discordLink) {
+    showMessage("Please fill in both fields.");
+    return;
+  }
 
-function startDelivery() {
-  console.log("Pretending to start delivery...");
-  alert("🧪 TEST MODE: This would normally start member delivery.");
-  window.location.href = "https://discord.gg/nfjeEsPgyx";
+  try {
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licenseKey, discordLink })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showMessage(`✅ Order started successfully. Order ID: ${data.order}`);
+    } else {
+      showMessage(`❌ Error: ${data.error || 'Something went wrong'}`);
+    }
+  } catch (err) {
+    showMessage(`❌ Request failed: ${err.message}`);
+  }
+});
+
+function showMessage(msg) {
+  message.textContent = msg;
+  message.classList.remove('hidden');
 }
